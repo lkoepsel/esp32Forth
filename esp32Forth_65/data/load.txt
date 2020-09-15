@@ -1,0 +1,62 @@
+DECIMAL
+
+: PWM ( pin dutycycle/8192 chan frequency  --  , Set pin for PWM )
+    over freq swap over duty pin ;
+( EX: 5 4096 0 1000 PWM -- pin 5, 50%, chan 0, 1kHz )
+( EX: 18 2700 2 2000 PWM -- pin 18, 33%, chan 2, 2kHz )
+
+: TOGLED ( --  , toggle led )
+    p0in $2000 xor p0 ;
+
+: DELAY ( millis --  , same as Arduino delay, locks out until delay ends)
+    gtime + begin dup gtime < until drop ;
+( EX: 5000 delay -- locks out for 5 seconds )
+
+: BLINK ( millis -- , blink led on/off for period of milliseconds )
+    begin dup delay togled ?keyt until drop drop ;
+( EX: 500 blink -- blinks off/on for 500 millisecs )
+
+: ALTERNATE ( period cfa -- , alternate a word per period )
+    begin dup rot dup delay swap execute swap ?keyt until drop drop drop ;
+( EX: 500 ' togled alternate -- blinks off/on for 500 millisecs )
+
+: DELAYM ( micros --  , same as Arduino delay, locks out until delay ends)
+    gtimm + begin dup gtimm < until drop ;
+( EX: 5000 delay -- locks out for 500 milliseconds )
+
+: BLINKM ( micros -- , blink led on/off for period of microseconds )
+    begin dup delaym togled ?keyt until drop drop ;
+( EX: 500 blink -- blinks off/on for 500 millisecs )
+
+: INIT21 ( -- , init pin and level )
+     21 opin p0in $200000 xor p0S ;
+
+: TOG21 ( --  , toggle led )
+    p0in $200000 xor p0 ;
+
+: BLINK21 (  -- , blink pin 21 on/off as fast as possible, allow for interruption )
+    init21 begin tog21 ?keyt until drop ;
+( EX: 72 kHz )
+
+: BLNK21 (  -- , blink pin 21 on/off as fast as possible )
+    init21 begin tog21 again ;
+( EX: 94 kHz )
+
+: TESTIF ( f -- , show results for if test )
+    if  ." true " else ." false " then ." both " ;
+( EX: 1 test true both )
+( EX: 0 test false both )
+
+variable BUTTON 21 BUTTON !
+BUTTON @ INPDN 
+: BUTTON? button @ dread ;
+
+: DEBOUNCE ( f -- , show results for if test )
+    if  ." Button! " else ." Bounce! " then ;
+
+: PRESSED?
+    button? if dup delay button? debounce then ;
+
+: WORKS? ( nextkey debounce -- ) begin pressed? dup delay ?keyt until drop drop drop ;
+
+( 2078 bytes)

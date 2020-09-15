@@ -1,0 +1,228 @@
+DELAY ( delay --  ) same as Arduino delay(), locks out until delay(millisecs) ends
+PWM ( pin duty chan freq -- ) set a pin to output a specific square wave
+IMMEDIATE ( -- ) sets the immediate lexicon bit in the name field of the new word just compiled. When the compiler encounters a word with this bit set, it will not compile this word into the token list under construction, but execute the token immediately. This bit allows structure words to build special structures in a compound word, and to process special conditions when the compiler is running. 
+COMPILE-ONLY ( -- ) sets the compile-only lexicon bit in the name field of the new word just compiled. When the interpreter encounters a word with this bit set, it will not execute this word, but spit out an error message. This bit prevents structure words to be executed accidentally outside of a compound word.
+( (paren) ( -- ; <string> ) ignores the following string till the next ). It is used to place comments in source text. 
+\ (back-slash) ( -- ; <string> ) ignores all characters till end of input buffer. It is used to insert comment lines in text. 
+.( (dot-paren) ( -- ; <string> ) types the following string till the next ). It is used to output text to the terminal. 
+CONSTANT ( n -- ; <string> ) creates a new constant, initialized to the value on top of stack.
+VARIABLE ( -- ; <string> ) creates a new variable, initialized to 0. 
+CREATE ( -- ; <string> ) creates a new array without allocating memory. Memory is allocated using ALLOT. 
+CODE ( -- ; <string> ) creates a word header, ready to accept byte code for a new primitive word. Without a byte code assembler, you can use the word , (comma) to add words with byte code in them.
+." (dot-quot) ( -- ; <string> ) compiles a character string which will be displayed when the word containing it is executed in the runtime. This is the best way to present messages to the user. 
+$" ( -- ; <string> ) compiles a character string. When it is executed, only the address of the string is left on the data stack. You will use this address to access the string and individual characters in the string as a string array. 
+ABORT" ( -- ; <string> ) compiles an error message. This error message is display if top item on the stack is non-zero. The rest of the words in the word is skipped and eForth resets to ABORT. If top of stack is 0, ABORT” skips over the error message and continue executing the following token list.
+WHILE ( a -- A a ) compiles a QBRANCH address literal in a BEGIN-WHILE-REPEAT loop. The address A of this address literal is swapped with address a left by BEGIN, so that REPEAT will resolve all loose ends and build the loop structure correctly.
+ELSE ( A -- A ) starts the false clause in an IF-ELSE-THEN structure. It compiles a BRANCH address literal. It uses the current token address to resolve the branch address in A, and replace A with the address of its address literal.
+AFT ( a -- a A ) jumps to THEN in a FOR-AFT-THEN-NEXT loop the first time through. It compiles a BRANCH address literal and leaves its address field on stack. This address will be resolved by THEN. It also replaces address A left by FOR by the address of next token so that NEXT will compile a DONEXT address literal to jump back here at run time.
+REPEAT ( A a -- ) terminates a BEGIN-WHILE-REPEAT indefinite loop structure. It compiles a BRANCH address literal with address a left by BEGIN, and uses the address of next token to resolve the address literal at A. 
+AHEAD ( -- A ) starts a forward branch structure. It compiles a BRANCH address literal, with a 0 in the address field. It leaves the address of this address field on data stack. This address will later be resolved when the branch structure is closed.
+IF ( -- A ) starts a conditional branch structure. It compiles a QBRANCH address literal, with a 0 in the address field. It leaves the address of this address field on data stack. This address will later be resolved by ELSE or THEN in closing the true clause in the branch structure.
+AGAIN ( a -- ) terminate a BEGIN-AGAIN infinite loop structure. . It compiles a BRANCH address literal using the address on data stack.
+UNTIL ( a -- ) terminate a BEGIN-UNTIL indefinite loop structure. It compiles a QBRANCH address literal using the address on data stack.
+NEXT ( a -- ) Terminate a FOR-NEXT loop structure, by compiling a DONEXT address literal, branch back to the address A on data stack.
+BEGIN ( -- a ) starts an infinite or indefinite loop structure. It does not compile anything, but leave the current token address on data stack to resolve address literals compiled later.
+FOR ( -- a ) starts a FOR-NEXT loop structure in a colon definition. It compiles >R, which pushes a loop count on return stack. It also leaves the address of next token on data stack, so that NEXT will compile a DONEXT address literal with the correct branch address.
+THEN ( A -- ) terminates a conditional branch structure. It uses the address of next token to resolve the address literal at A left by IF or ELSE.
+KKK ( – )dumps 17 lines of data from the LEDC-PWM control registers of ESP32.
+PPPP ( a n – )dumps n+1 lines of consecutive words from absolute address a.
+TYPEE( a – a+32 )displays 8 consecutive words in from absolute address a.
+EMITT( n – )displays 4 consecutive bytes in n.
+PPP ( – )dumps 4 lines of consecutive words from registers in P0 and P1 ports.
+P1IN ( – n )reads 32-bits from P1 input port.
+P0IN ( – n )reads 32-bits from P0 input port.
+P1ENC ( n– )clears output enable bits in P1 port according to mask n.
+P1ENS ( n– )sets output enable bits in P1 port according to mask n. 
+P1EN ( n– )enables output bits in P1 port according to mask n.
+P0ENC ( n– )clears output enable bits in P0 port according to mask n.
+P0ENS ( n– )sets output enable bits in P0 port according to mask n.
+P0EN ( n– )enables output bits in P0 port according to mask n.
+P1C ( n– )clears P1 output bits according to bits in mask n.
+P1S ( n– )sets P1 output bits according to bits in mask n.
+P1 ( n– )outputs a 32-bit word n to P1 port in ESP32.
+P0C ( n– )clears P0 output bits according to bits in mask n.
+P0S ( n– )sets P0 output bits according to bits in mask n.
+P0 ( n– )outputs a 32-bit word n to P0 port in ESP32. GPIO_OUT_REG (0x0004)
+PP ( a n– )dumps n+1 lines of consecutive words from absolute memory address a.
+LINE ( a – a+8 )writes 8 consecutive words from absolute memory address a.
+COLD ( -- )is a high level word executed upon power-up. It sends out sign-on message, and then falls into the text interpreter loop through QUIT. In this system EVAL is called from Arduino, and QUIT is not used.
+FORGET ( -- , <name>)searches the dictionary for a name following it. If it is a valid word, trim dictionary below this word. Display an error message if it is not a valid word.
+WORDS ( -- )displays all the names in the dictionary. The order of words is reversed from the compiled order. The last defined word is shown first. 
+.ID ( a -- )displays the name of a token, given its name field address. It also replaces non-printable characters in a name by under-scores. 
+>NAME ( cfa -- nfa | F )finds the name field address of a token from its code field address. If the token does not exist in the dictionary, it returns a false flag. >NAME is the mirror image of the word NAME>, which returns the code field address of a token from its name field address. Since the code field is right after the name field, whose length is stored in the lexicon byte, NAME> is trivial. >NAME is more complicated because we have to search the dictionary to acertain the name field address.  
+DUMP ( b u -- )dumps u bytes starting at address b to the terminal. It dumps 8 words to a line. A line begins with the address of the first byte, followed by 8 words shown in hex. At the end of a line are the 32 bytes shown in ASCII code. 
+dm+ ( b u – b+u )dumps u bytes starting at address b to the terminal. It dumps 8 words. A line begins with the address of the first byte, followed by 8 words shown in hex, and the same data shown in ASCII. Non-printable characters by replaced by underscores. A new address b+u is returned to dump the next line.;
+: (colon) ( -- ; <string> ) creates a new header and start a new compound word. It takes the following string in the input stream to be the name of the new compound word, by building a new header with this name in the name dictionary. It then compiles a dolist, byte code at the beginning of the code field in the code dictionary. Now, the code dictionary is ready to accept a token list. ] (right paren) is now invoked to turn the text interpreter into a compiler, which will compile the following words in the input stream to a token list in the code dictionary. The new compound word is terminated by ;, which compiles an EXIT to terminate the token list, and executes [ (left paren) to turn the compiler back to text interpreter. 
+; (semi-colon) ( -- ) terminates a compound word. It compiles an EXIT to the end of the token list, links this new word to the dictionary, and then reactivates the interpreter. 
+] (right paren) ( -- ) turns the interpreter to a compiler. 
+OVERT ( -- ) links a new word to the dictionary and thus makes it available for dictionary searches. 
+$COMPILE ( a -- )builds the body of a new compound word. A complete compound word also requires a header in the name dictionary, and its code field must start with a dolist, byte code. These extra works are performed by : (colon). Compound words are the most prevailing type of words in eForth. In addition, eForth has a few other defining words which create other types of new words in the dictionary. 
+COMPILE ( -- ) is used in a compound word. It causes the next token after COMPILE to be added to the top of the code dictionary. It therefore forces the compilation of a token at the run time. 
+[COMPILE] ( -- ; <string> )acts similarly, except that it compiles the next word immediately. It causes the following word to be compiled, even if the following word is usually an immediate word which would otherwise be executed. '
+$,n ( a -- )builds a new name field in dictionary using the name already moved to the top of dictionary by PACK$. It pads the link field with the address stored in LAST. A new token can now be built in the code dictionary. 
+?UNIQUE ( a -- a )is used to display a warning message to show that the name of a new word already existing in dictionary. eForth does not mind your reusing the same name for different words. However, giving many words the same name is a potential cause of problems in maintaining software projects. It is to be avoided if possible and ?UNIQUE reminds you of it. 
+$,” ( -- ) extracts next word delimited by double quote. Compile it as a string literal.
+ALLOT ( n -- ) allocates n bytes of memory on the top of the dictionary. Once allocated, the compiler will not touch the memory locations. It is possible to allocate and initialize this array using the word’, (comma)’.
+LITERAL ( n -- ) compiles an integer literal to the current compound word under construction. The integer literal is taken from the data stack, and is preceded by the token DOLIT. When this compound word is executed, DOLIT will extract the integer from the token list and push it back on the data stack. LITERAL compiles an address literal if the compiled integer happens to be an execution address of a token. The address will be pushed on the data stack at the run time by DOLIT. 
+, (comma) ( w -- ) adds the execution address of a token on the top of the data stack to the code dictionary, and thus compiles a token to the growing token list of the word currently under construction. 
+LOAD ( a n-- )evaluates a text string at a with length n. It is to compile a program store in flash memory of ESP32. 
+QUIT ( -- ) is the operating system, or a shell, of the eForth system. It is an infinite loop eForth will not leave. It uses QUERY to accept a line of text from the terminal and then let EVAL parse out the tokens and execute them. After a line is processed, it displays the top of data stack and wait for the next line of text. When an error occurred during execution, it displays the command which caused the error with an error message. After the error is reported, it re-initializes the system by jumping to ABORT. Because the behavior of EVAL can be changed by storing either $INTERPRET or $COMPILE into 'EVAL, QUIT exhibits the dual nature of a text interpreter and a compiler. 
+EVAL ( -- )has a loop which parses tokens from the input stream and invokes whatever is in 'EVAL  to process that token, either execute it with $INTERPRET or compile it with $COMPILE. It exits the loop when the input stream is exhausted. 
+.OK ( -- ) used to be a word which displays the familiar 'ok' prompt after executing to the end of a line. In esp32forth_62, it displays the top 4 elements on data stack so you can see what is happening on the stack. It is more informative than the plain ‘ok’, which only give you a warm and fuzzy feeling about the system. When text interpreter is in compiling mode, the display is suppressed.
+[ (left-paren) ( -- ) activates the text interpreter by storing the execution address of $INTERPRET into the variable 'EVAL, which is executed in EVAL while the text interpreter is in the interpretive mode. 
+$INTERPRET ( a -- )executes a word whose string address is on the stack. If the string is not a word, convert it to a number. If it is not a number, ABORT.
+ERROR ( a -- ) displays an error message at a with a ? mark, and ABORT.
+abort”| ( f -- ) A runtime string word compiled in front of a string of error message. If flag f is true, display the following string and jump to ABORT. If flag f is false, ignore the following string and continue executing tokens after the error message.
+ABORT ( -- ) resets system and re-enters into the text interpreter loop EVAL. It actually executes EVAL stored in ‘ABORT. 
+QUERY ( -- )is the command which accepts text input, up to 80 characters, from an input device and copies the text characters to the terminal input buffer. It also prepares the terminal input buffer for parsing by setting #TIB to the received character count and clearing >IN. 
+EXPECT ( b u1 -- ) accepts u1 characters to b. Number of characters accepted is stored in SPAN. 
+NAME? ( a -- cfa na | a 0 )find a word in dictionary with name at a. If found, return its cfa and nfa. Else, push a false flag on top of a.
+find ( a va --cfa nfa, a F) searches the dictionary for a word. A counted string at a is the name of a token to be looked up in the dictionary. The last name field address of the dictionary is stored in location va. If the string is found, both the code field address and the name field address are returned. If the string is not the name a token, the string address and a false flag are returned. 
+SAME? ( a1 a2 n – a1 a2 f) Compare n/4 words in strings at a1 and a2. If the strings are the same, return a 0. If string at a1 is higher than that at a2, return a positive number; otherwise, return a negative number. FIND compares the 1st word input string and a name. If these two words are the same, SAME? is called to compare the rest of two strings
+NAME> ( nfa – cfa) Return a code field address from the name field address of a word.
+WORD ( c -- a ; <string> )parses out the next word delimited by the ASCII character c. Copy the word to the top of the code dictionary and return the address of this counted string. 
+TOKEN ( -- a ;; <string> ) parses the next word from the input buffer and copy the counted string to the top of the name dictionary. Return the address of this counted string. 
+PARSE ( c -- b u ; <string> )scans the source string in the terminal input buffer from where >IN points to till the end of the buffer, for a word delimited by character c. It returns the address and length of the word parsed out. PARSE calls (parse) to do the dirty work.  
+PACK$ ( b u a -- a ) copies a source string (b u) to target address at a. The target string is null filled to the cell boundary. The target address a is returned.
+(parse) ( b1 u1 c --b2 u2 n ) From the source string starting at b1 and of u1 characters long, parse out the first word delimited by character c. Return the address b2 and length u2 of the word just parsed out and the difference n between b1 and b2. Leading delimiters are skipped over. (parse) is used by PARSE. 
+? ( a -- ) displays signed integer stored in memory a on the top of the parameter stack, in free format followed by a space.
+. (dot) ( n -- )displays a signed integer n in free format, followed by a space.
+U. ( u -- ) displays an unsigned integer u in free format, followed by a space.
+U.R ( u +n -- )displays an unsigned integer n right-justified in a field of +n characters.
+.R ( u +n -- )displays a signed integer n , the second item on the parameter stack, right-justified in a field of +n characters. +n is on the top of the parameter stack.
+.”| ( -- ) displays the following string on stack. This is a very convenient way to send helping messages to you at run time.
+$”| ( -- a ) pushes the address of the following string on stack. Other words can use this address to access data stored in this string. The string is a counted string. Its first byte is a byte count.
+do$ ( -- $adr )retrieves the address of a string stored as the second item on the return stack. do$ is a bit difficult to understand, because the starting address of the following string is the second item on the return stack. This address is pushed on the data stack so that the string can be accessed. This address must be changed so that the address interpreter will return to the token right after the compiled string. This address will allow the address interpreter to skip over the string literal and continue to execute the token list as intended. Both $"| and ."| use the word do$
+CR ( -- ) outputs a carriage-return and a line-feed. Prior output characters are accumulated in a UDP packet buffer. This packet is sent out by sendPacket.
+TYPE ( b u -- )outputs n characters from a string in memory. Non ASCII characters are replaced by a underscore character.
+SPACES ( +n -- ) outputs n blank space characters. 
+CHARS ( +n c -- )outputs n characters c. 
+SPACE ( -- ) outputs a blank space character. 
+NUMBER? ( a -- n T | a F )converts a string of digits to a single integer. If the first character is a $ sign, the number is assumed to be in hexadecimal. Otherwise, the number will be converted using the radix value stored in BASE. For negative numbers, the first character should be a - sign. No other characters are allowed in the string. If a non-digit character is encountered, the address of the string and a false flag are returned. Successful conversion returns the integer value and a true flag. If the number is larger than 2**n, where n is the bit width of a single integer, only the modulus to 2**n will be kept. 
+DIGIT? ( c base -- u t )converts a digit to its numeric value according to the current base, and NUMBER? converts a number string to a single integer.  
+ >upper ( c -- UC )converts a character to upper case.
+wupper ( w -- w' ) converts 4 bytes in a word to upper case characters.
+DECIMAL ( -- ) sets numeric conversion radix in BASE to 10 for decimal conversions.
+HEX ( -- ) sets numeric conversion radix in BASE to 16 for hexadecimal conversions.
+str ( n -- b u ) converts a signed integer on the top of data stack to a numeric output string.
+#> ( w -- b u ) terminates the numeric conversion and pushes the address and length of output numeric string on the parameter stack.
+SIGN ( n -- ) inserts a - sign into the numeric output string if the integer on the top of the parameter stack is negative.
+#S (digs) ( u -- 0 ) extracts all digits to output string until the integer on the top of the parameter stack is divided down to 0.
+# (dig) ( u -- u ) extracts one digit from integer on the top of the parameter stack, according to radix in BASE, and add it to output numeric string.
+HOLD ( c -- ) appends an ASCII character whose code is on the top of the parameter stack, to the numeric output string at HLD. HLD is decremented to receive the next digit.
+<# ( -- ) initiates the output number conversion process by storing PAD buffer address into variable HLD, which points to the location next numeric digit will be stored.
+EXTRACT( n base -- n c ) extracts the least significant digit from a number n. n is divided by the radix in BASE and returned on the stack. 
+DIGIT ( u -- c )converts an integer to an ASCII digit. 
+FILL( b u c -- ) fills a memory array with the same byte c. 
+MOVE ( b b u -- )copies a memory array from one location to another. It copies one word at a time.
+CMOVE ( b b u -- )copies a memory array from one location to another. It copies one byte at a time.
+@EXECUTE ( a -- ) is a special word supporting the vectored execution words in eForth. It fetches the code field address of a token and executes the token.  
+TIB ( -- a ) returns the terminal input buffer where input text string is held. 
+PAD ( -- a ) returns the address of the text buffer where numbers are constructed and text strings are stored temporarily. 
+HERE ( -- a ) returns the address of the first free location above the code dictionary, where new words are compiled. 
+ALIGNED ( b -- a ) changes the address to the next cell boundary so that it can be used to address 32 bit word in memory.
+>CHAR ( c -- c )is very important in converting a non-printable character to a harmless 'underscore' character (ASCII 95). As eForth is designed to communicate with you through a serial I/O device, it is important that eForth will not emit control characters to the host and causes unexpected behavior on the host computer. >CHAR thus filters the characters before they are sent out by TYPE. 
+WITHIN ( u ul uh -- t ) checks whether the third item on the data stack is within the range as specified by the top two numbers on the data stack. The range is inclusive as to the lower limit and exclusive to the upper limit. If the third item is within range, a true flag is returned on the data stack. Otherwise, a false flag is returned. All numbers are assumed to be unsigned integers. 
+KEY ( -- c ) wait for the terminal input device to receive a character c.
+?keyt ( -- key ) – test for key entered [if (Serial.available() == 0) ]
+GTIMM ( -- time ) - get a microsecond time on to stack [micros()]
+LED ( level -- ) - set onboard LED high/low [digitalWrite(LED_BUILTIN, level)]
+> ( n1 n2 -- t ) Signed compare of top two items. Return true if n1>n2
+IPUN ( pin --) set pin to INPUT_PULLUP
+GTIME ( -- time ) - get a time elapsed value on to stack [millis()]
+DREAD ( pin -- ) - read a digital value on a pin [digitalRead()]
+DWRT ( level pin -- ) - set a digital pin high/low [digitalWrite()]
+OPIN ( pin -- ) - set pin to be an OUTPUT [pinMode()]
+IPIN ( pin -- ) - set pin to be an INPUT [pinMode()]
+FREQ ( frequency chan -- ) - set a channel to a specific frequency [ledcSetup()]
+DUTY ( n/8192 chan -- ) - set a channel duty cycle to n/8192 i.e; 50% is 4096 [ledcWrite()]
+TONE - don't use, called audio in file, inconsistent results [ledcWriteTone()]
+PIN ( pin chan -- ) - set a pin to a channel [ledcAttachPin()]
+ADC ( pin -- ) - read a analog value on a pin [analogRead()]
+PEEK ( a – n ) reads one word n from an absolute address a in ESP32.
+POKE ( n a -- ) writes one word n to an absolute address a in ESP32.
+sendPacket
+2/ ( n – n/2 ) Divide n by 2. 
+2* ( n – n*2 ) Multiply n by 2.  
+2- ( n – n-2 ) Subtract 2 from n. 
+2+ ( n – n+2 ) Add 2 to n. 
+1- ( n – n-1 ) Decrement n. 
+1+ ( n – n+1 ) Increment n. 
+CELL/ ( n – n+4 ) Divide n by 4. 
+CELL* ( n – n*4 ) Multiply n by 4. 
+CELL- ( n – n-4 ) Subtract 4 from n. 
+CELL+ ( n – n+4 ) Add 4 to n. 
+CELL ( -- 4 ) Return number of bytes in a 32-bit integer. 
+BL ( -- 32 ) Return the blank ASCII code 32. 
+MIN ( n1 n2 -- n ) Return the smaller of top two stack items. 
+MAX ( n1 n2 -- n ) Return the greater of two top stack items. 
+COUNT ( b -- b+1 +n ) Return count byte of a string and add 1 to byte address. 
+2@ ( a -- d ) Fetch double integer from address a. 
+2! ( d a -- ) Store the double integer to address a. 
++! ( n a -- ) Add n to the contents at address a. 
+PICK ( ... +n -- ... w ) Copy the nth stack item to top. 
+*/ ( n1 n2 n3 -- q ) Multiply n1 by n2, then divide by n3. Return quotient only.
+*/MOD ( n1 n2 n3 -- r q ) Multiply n1 and n2, then divide by n3. Return mod and quotient. 
+M* ( n1 n2 -- d ) Signed multiply. Return double product. 
+* ( n n -- n ) Signed multiply. Return single product. 
+UM* ( u1 u2 -- ud ) Unsigned multiply. Return double product. 
+/ ( n n -- q ) Signed divide. Return quotient only. 
+MOD ( n n -- r ) Signed divide. Return mod only. 
+/MOD ( n1 n2 -- r q ) Signed divide. Return mod and quotient. 
+M/MOD ( d n -- r q ) Signed floored divide of double by single. Return mod and quotient. 
+UM/MOD( udl udh u -- ur uq ) Unsigned divide of a double by a single. Return mod and 
+< ( n1 n2 -- t ) Signed compare of top two items. Return true if n1<n2
+U< Unsigned compare of top two items.
+= ( w w -- t ) Return true if top two are equal.
+ABS ( n -- n ) Return the absolute value of n.
+- ( n1 n2 -- n1-n2 ) Subtraction. 
+DNEGATE ( d -- -d ) Two's complement of top double.
+NEGATE ( n -- -n ) Two's complement of top.  
+NOT ( w -- w ) One's complement of top.
++ ( w w -- sum ) Add top two items. 
+2DUP (n1 n2 -- n1 n2 n1 n2) duplicate top two on stack
+2DROP (n1 n2 -- ) delete top two on stack
+ROT (n1 n2 n3 -- n2 n3 n1) rotate 3rd item to top of stack
+?DUP (n1 -- n1 n1 if nz) duplicate top of stack if non-zero
+UM+ ( w w -- w cy ) Add two numbers, return the sum and carry flag. 
+XOR ( w w -- w ) Bitwise exclusive OR. 
+OR ( w w -- w ) Bitwise inclusive OR. 
+AND ( w w -- w ) Bitwise AND. 
+0< ( n – f ) Examine the top item on the data stack for its negativeness. If it is negative, return a 
+OVER ( w1 w2 -- w1 w2 w1 ) Copy second stack item to top. 
+SWAP ( w1 w2 -- w2 w1 ) Exchange top two stack items. 
+DUP ( w -- w w ) Duplicate the top stack item. 
+DROP ( w -- ) Discard top stack item.
+>R( -- n ) Pop a number off the return stack and pushes it on the data stack. 
+R@ ( -- n ) Copy a number off the return stack and pushes it on the return stack.  
+R> ( n -- ) Pop a number off the data stack and pushes it on the return stack. 
+C@ ( b -- n) Replace byte memory address b with its byte contents fetched from this location.
+C! ( c b -- ) Store a byte value c into memory location b.
+@ ( a -- n) Replace memory address a with its integer contents fetched from this location.
+! ( n a -- ) Store integer n into memory location a.
+BRANCH ( -- ) Branch to the address following BRANCH. BRANCH is compiled by AFT, ELSE, REPEAT and AGAIN.
+QBRANCH ( f -- ) Test top element as a flag on data stack. If it is zero, branch to the address following QBRANCH; otherwise, continue execute the token list following the address. QBRANCH is compiled by IF, WHILE and UNTIL.
+DONEXT ( -- ) Terminate a FOR-NEXT loop. The loop count was pushed on return stack, and is decremented by DONEXT. If the count is not negative, jump to the address following DONEXT; otherwise, pop the count off return stack and exit the loop. DONEXT is compiled by NEXT.
+EXECUTE ( a -- ) Take the execution address from the data stack and executes that token. This powerful word allows you to execute any token which is not a part of a token list.
+EXIT ( -- ) Terminate all token lists in compound words. EXIT pops the execution address saved on the return stack back into the IP register and thus restores the condition before the compound word was entered. Execution of the calling token list will continue. 
+DOLIST ( -- ) Push the current Instruction Pointer (IP) the return stack and then pops the Program Counter P into IP from the data stack. When next() is executed, the tokens in the list are executed consecutively. Dolist, is in the code field of all compound words. The token list in a compound word must be terminated by EXIT.
+DOLIT ( -- w) Push the next token onto the data stack as an integer literal. It allows numbers to be compiled as in-line literals, supplying data to the data stack at run time. 
+EMIT ( c -- ) Send a character to the serial terminal, and the UDP output buffer. The UDP packet will be send out when CR is executed.
+?KEY ( -- c t | f ) Waits for character from terminal input device. Return character c and a true flag if available. Else return a false flag. [while Serial.available()]
+ACCEPT
+NOP ( -- ) No operation. Break FVM and returns to Arduino loop().
+channel Timer channel for voice output.
+ppqn Pulses per quarter note.
+Z 0
+tmp Scratch pad.
+'ABORT Pointer to QUIT word to handle error conditions.
+'EVAL Execution vector of text interpreter, initialized to point to $INTERPRET. It may be changed to point to $COMPILE in compiling mode.
+LAST Pointer to name field of last word.
+CP Pointer to top of dictionary, first free memory location to add new words. It is saved by "h forth_@" on top of the source code page.
+CONTEXT Pointer to name field of last word in dictionary.
+BASE Number base for hexadecimal numeric conversions.
+'TIB Pointer to Terminal Input Buffer.
+#TIB Number of characters received in terminal input buffer.
+>IN Pointer to next character to be interpreted.
+SPAN Number of input characters.
+HLD Pointer to text buffer for number output.

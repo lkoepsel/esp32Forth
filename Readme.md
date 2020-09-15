@@ -1,10 +1,10 @@
 # espForth
 
-## version 65
+## version 6.5
 ```
 6.5: Changes either due to board (Adafruit ESP32 Feather) or wanting specific 
 actions from defined words
-40: #include “pins_arduino.h”, not used, however there for easier integration
+Approximate line numbers
 60-67: redefined IP to be uint32_t to fix compile error
 415: redefined LED_PIN to be 13 for ESP32 Feather
 729: redefined DUTY to call ledcWrite to allow for simpler PWM setup
@@ -25,8 +25,10 @@ OPIN ( pin -- ) - set pin to be an OUTPUT [pinMode()]
 IPIN ( pin -- ) - set pin to be an INPUT [pinMode()]
 ```
 
-## version 6.2: Original version by CH Ting Complete Forth Written in C
-
+## version 6.2: Original version by CH Ting 
+```
+Complete Forth Written in C
+```
 
 ## Author
     Lief Koepsel made edits to espForth 6.2 by CH Ting

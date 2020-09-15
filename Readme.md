@@ -1,7 +1,9 @@
 # espForth
 
 ## version 65
-6.5: Changes either due to board (Adafruit ESP32 Feather) or wanting specific actions from defined words
+```
+6.5: Changes either due to board (Adafruit ESP32 Feather) or wanting specific 
+actions from defined words
 40: #include “pins_arduino.h”, not used, however there for easier integration
 60-67: redefined IP to be uint32_t to fix compile error
 415: redefined LED_PIN to be 13 for ESP32 Feather
@@ -21,17 +23,20 @@ DREAD ( pin -- ) - read a digital value on a pin [digitalRead()]
 DWRT ( level pin -- ) - set a digital pin high/low [digitalWrite()]
 OPIN ( pin -- ) - set pin to be an OUTPUT [pinMode()]
 IPIN ( pin -- ) - set pin to be an INPUT [pinMode()]
-
+```
 
 ## version 6.2: Original version by CH Ting Complete Forth Written in C
 
 
 ## Author
     Lief Koepsel made edits to espForth 6.2 by CH Ting
-    My goal is the same as CH Ting, to use Forth to help students understand Forth and use it to gain a further understanding of working with microcontrollers
+    My goal is the same as CH Ting, to use Forth to help students understand 
+    Forth and use it to gain a further understanding of working 
+    with microcontrollers
 
     All mistakes made are made by me.
-    I appreciate the incredible effort, great documentation and ease of implementation, CH Ting has put into espForth.
+    I appreciate the incredible effort, great documentation and 
+    ease of implementation, CH Ting has put into espForth.
 
 
 ## Original Author

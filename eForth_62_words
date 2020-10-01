@@ -1,4 +1,20 @@
-DELAY ( delay --  ) same as Arduino delay(), locks out until delay(millisecs) ends
+OBEGN ( -- ) init display using default addr 0x3C and flag is true [display.begin]
+OCLR ( -- ) clears display [display.Clear]
+ODISP ( -- ) displays the display buffer [display.display]
+OROT ( rot -- ) rotate the display, 1 has c button at bottom [display.Rotation]
+OTSIZ ( size -- ) set text size, 1 is standard [display.setTextSize]
+OCURS ( height width -- ) set cursor location [display.Cursor]
+OPRNT ( strptr --  ) display test string on OLED [display.print]
+OCRLF  ( --  ) display CRLF test string on OLED [display.print]
+BLNK21 (  -- ) blink pin 21 on/off as fast as possible
+BLINK21 (  --  ) blink pin 21 on/off as fast as possible, allow for interruption
+TOG21 ( --  ) toggle pin 21 
+INIT21 ( -- , init pin 21 and OUTPUT )
+BLINKM ( micros -- ) blink led on/off for period of microseconds )
+DELAYM ( micros --  ) same as Arduino delay, locks out until delay ends
+ALTERNATE ( period cfa -- ) alternate a word per period
+BLINK ( millis -- ) blink led on/off for period of milliseconds
+DELAY ( delay -- ) same as Arduino delay(), locks out until delay(millisecs) ends
 PWM ( pin duty chan freq -- ) set a pin to output a specific square wave
 IMMEDIATE ( -- ) sets the immediate lexicon bit in the name field of the new word just compiled. When the compiler encounters a word with this bit set, it will not compile this word into the token list under construction, but execute the token immediately. This bit allows structure words to build special structures in a compound word, and to process special conditions when the compiler is running. 
 COMPILE-ONLY ( -- ) sets the compile-only lexicon bit in the name field of the new word just compiled. When the interpreter encounters a word with this bit set, it will not execute this word, but spit out an error message. This bit prevents structure words to be executed accidentally outside of a compound word.
@@ -124,11 +140,12 @@ ALIGNED ( b -- a ) changes the address to the next cell boundary so that it can 
 >CHAR ( c -- c )is very important in converting a non-printable character to a harmless 'underscore' character (ASCII 95). As eForth is designed to communicate with you through a serial I/O device, it is important that eForth will not emit control characters to the host and causes unexpected behavior on the host computer. >CHAR thus filters the characters before they are sent out by TYPE. 
 WITHIN ( u ul uh -- t ) checks whether the third item on the data stack is within the range as specified by the top two numbers on the data stack. The range is inclusive as to the lower limit and exclusive to the upper limit. If the third item is within range, a true flag is returned on the data stack. Otherwise, a false flag is returned. All numbers are assumed to be unsigned integers. 
 KEY ( -- c ) wait for the terminal input device to receive a character c.
-?keyt ( -- key ) – test for key entered [if (Serial.available() == 0) ]
+?KEYT ( -- key ) – test for key entered [if (Serial.available() == 0) ]
 GTIMM ( -- time ) - get a microsecond time on to stack [micros()]
 LED ( level -- ) - set onboard LED high/low [digitalWrite(LED_BUILTIN, level)]
 > ( n1 n2 -- t ) Signed compare of top two items. Return true if n1>n2
-IPUN ( pin --) set pin to INPUT_PULLUP
+INPDN( pin --) set pin to INPUT_PULLDOWN
+INPUP ( pin --) set pin to INPUT_PULLUP
 GTIME ( -- time ) - get a time elapsed value on to stack [millis()]
 DREAD ( pin -- ) - read a digital value on a pin [digitalRead()]
 DWRT ( level pin -- ) - set a digital pin high/low [digitalWrite()]

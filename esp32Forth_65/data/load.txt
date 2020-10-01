@@ -59,4 +59,19 @@ BUTTON @ INPDN
 
 : WORKS? ( nextkey debounce -- ) begin pressed? dup delay ?keyt until drop drop drop ;
 
-( 2078 bytes)
+: test $" 1test2 " ; ( store a test string in memory for testing )
+( 2557 bytes )
+
+( OLED Words to be written )
+( OBEGN -- , init display using default addr 0x3C and flag is true [display.begin] )
+( OCLR -- , clears display )
+( ODISP -- , displays the display buffer )
+( OROT rot -- , rotate the display, 1 has c button at bottom )
+( OSIZE size -- , set text size, 1 is standard )
+( OCURS height width -- , set cursor location )
+( OPRNT strptr --  , display test string on OLED )
+( OCRLF  --  , display CRLF test string on OLED )
+
+: OSETUP OBEGN ODISP 1000 DELAY OCLR ODISP 1 OROT 1 OTSIZ 1 OTCOL 0 0 OCURS ;
+
+( 2078 bytes )

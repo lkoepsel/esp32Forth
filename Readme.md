@@ -48,4 +48,7 @@ Complete Forth Written in C
 ## Purpose of Code
     Use this code along with my Forth class to be published at a later date.
 
+## You may download or clone the entire repository, however, the folder esp32Forth_65 contains the specific code required by the Aruduino IDE and the ESP32 board. 
+* esp32Forth_65.ino - the main program required by the IDE to compile into Forth
+* data/load.txt - additional commands for LED's, button etc
 

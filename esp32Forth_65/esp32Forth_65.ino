@@ -989,7 +989,7 @@ void setup()
   R = 0;
   top = 0;
   cData = (uint8_t *) data;
-  Serial.begin(115200);
+  Serial.begin(2000000);
   delay(100);
   Serial.println("Booting esp32Forth v6.5 ...");
   

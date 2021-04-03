@@ -2,6 +2,8 @@
 
 ## version 6.5
 ```
+Confirmed to work with Adafruit Huzzah ESP32 on April 3, 2021
+Previous version had code for Adafruit 128x64 OLED and has been removed as it has not been completely debugged. 
 6.5: Changes either due to board (Adafruit ESP32 Feather) or wanting specific 
 actions from defined words
 Approximate line numbers
@@ -46,7 +48,7 @@ Complete Forth Written in C
     http://forth.org/OffeteStore/OffeteStore.html
 
 ## Purpose of Code
-    Use this code along with my website [www.wellys.com](www.wellys.com) for information on using Forth with microcontrollers.
+    Use this code along with my website www.wellys.com for information on using Forth with microcontrollers.
 
 ## Notes on repository
 You may download or clone the entire repository, however, the folder esp32Forth_65 contains the specific code required by the Aruduino IDE and the ESP32 board. 

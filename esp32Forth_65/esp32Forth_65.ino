@@ -41,72 +41,6 @@
 
 #include "SPIFFS.h"
 
-/******************************************************************************/
-/* Included for using Adafruit 128x64 OLED Display                            */
-#include <SPI.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SH110X.h>
-
-Adafruit_SH110X display = Adafruit_SH110X(64, 128, &Wire);
-
-// OLED FeatherWing buttons map to different pins depending on board:
-#define BUTTON_A 15
-#define BUTTON_B 32
-#define BUTTON_C 14
-
-// *************** Added string functions  ***************
-char outputString[22] = "Output String4567890"; // general output string, 22 bytes, # char OLED line
-char inputString1[22] = "Input String1111111"; // general input string, 22 bytes, # char OLED line
-char inputString2[22] = "Input String2222222"; // general input string, 22 bytes, # char OLED line
-const static char Forth1[] PROGMEM = "Forth version 6.5"; // store the text in flash
-// added to be able to get address of string and ensure it is mutable
-char *out_pointer = outputString;
-char* outputString_address(void) {
-    return out_pointer;
-}
-
-char *in1_pointer = inputString1;
-char* input_String1_address(void) {
-    return in1_pointer;
-}
-
-char *in2_pointer = inputString2;
-char* input_String2_address(void) {
-    return in2_pointer;
-}
-
-char* getString(const char* str) // String replacement - move string from flash to local buffer
-{
-  strcpy_P(outputString, (char*)str);
-  return outputString;
-}
-
-void printString(const char *str) 
-{ 
-    const char *p;
-    p = str;
-    while (*p) {
-        display.print(*p); // explanation in majenko's webpage
-        p++;
-    }
-}
-
-void printStringln(const char *str) // print line with crlf
-{
-    printString(str); 
-    crlf(); // carriage return, line feed
-}
-
-void crlf() // carriage return and linefeed
-{
-  const static char crlf[] PROGMEM = "\r\n"; 
-  printString(getString(crlf));
-}
-// ***************  End of Added string functions  *************** 
-
-/* End of Include for Adafruit 128 x 64 OLED Display                          */
-/******************************************************************************/
 
 /******************************************************************************/
 /* esp32Forth_51                                                              */
@@ -868,78 +802,6 @@ void gtimm(void)
 { stack[(unsigned char)++S] = top; 
   top= (long) micros(); }
 
-/********************* Words for 128x64 OLED Display **************************/
-
-// ( OBEGN -- , init display using default addr 0x3C and flag is true [display.begin] )
-void obegn(void)
-{ 
-  display.begin(0x3C, true);
-}
-
-// ( OCLR -- , clears display )
-void oclr(void)
-{ 
-  display.clearDisplay();
-}
-
-// ( ODISP -- , displays the display buffer )
-void odisp(void)
-{   
-  display.display();
-}
-
-// ( OROT rot -- , rotate the display, 1 has c button at bottom )
-void orot(void)
-{  
-  WP=top; pop;
-  display.setRotation(WP);
-}
-
-// ( OTSIZ size -- , set text size, 1 is standard )
-void otsiz(void)
-{  
-  WP=top; pop;
-  display.setTextSize(WP);
-}
-
-// ( OTCOL color -- , set text color, 1 is white, 0 is black, 2 is inverse )
-void otcol(void)
-{  
-  WP=top; pop;
-  display.setTextColor(WP);
-}
-
-// ( OCURS height width -- , set cursor location )
-void ocurs(void)
-{  WP=top; pop;
-   display.setCursor(WP,top);
-   pop;
-}
-// ( OPRNT strptr --  , print string on OLED )
-void oprnt(void)
-{  
-  Pointer = (long*)top;
-  top = *Pointer;
-   printStringln(getString(Forth1));
-//  printStringln(getString(top));
-}
-
-// ( OCRLF  -- , print CRLF on display )
-void ocrlf(void)
-{  
-  crlf();
-}
-
-void outadr(void)
-{  
-  top = (long)outputString_address();
-}
-
-void in1adr(void)
-{  top = (long)input_String1_address();  }
-
-void in2adr(void)
-{  top = (long)input_String2_address();  }
 
 void (*primitives[95])(void) = {
     /* case 0 */ nop,
@@ -1024,19 +886,7 @@ void (*primitives[95])(void) = {
     /* case 79 */ great,
     /* case 80 */ led,
     /* case 81 */ gtimm,
-    /* case 82 */ qrxt,
-    /* case 83 */ obegn,
-    /* case 84 */ oclr,
-    /* case 85 */ odisp,
-    /* case 86 */ orot,
-    /* case 87 */ otsiz,
-    /* case 88 */ otcol,
-    /* case 89 */ ocurs,
-    /* case 90 */ oprnt,
-    /* case 91 */ ocrlf,
-    /* case 92 */ outadr,
-    /* case 93 */ in1adr,
-    /* case 94 */ in2adr };
+    /* case 82 */ qrxt };
 
 int as_nop=0;
 int as_accept=1;
@@ -1121,18 +971,7 @@ int as_great=79;
 int as_led=80;
 int as_gtimm=81;
 int as_qrxt=82;
-int as_obegn=83;
-int as_oclr=84;
-int as_odisp=85;
-int as_orot=86;
-int as_otsiz=87;
-int as_otcol=88;
-int as_ocurs=89;
-int as_oprnt=90;
-int as_ocrlf=91;
-int as_outadr=92;
-int as_in1adr=93;
-int as_in2adr=94;
+
 
 void evaluate()
 { while (true){
@@ -1150,8 +989,7 @@ void setup()
   R = 0;
   top = 0;
   cData = (uint8_t *) data;
-  Serial.begin(38400);
-//  Serial.begin(115200);
+  Serial.begin(115200);
   delay(100);
   Serial.println("Booting esp32Forth v6.5 ...");
   
@@ -1381,31 +1219,6 @@ void setup()
   HEADER(5,"GTIMM");
   int GTIMM=CODE(4,as_gtimm,as_next,0,0);
   HEADER(5,"?KEYT");
-  int QKEYT=CODE(4,as_qrxt,as_next,0,0);  
-  HEADER(5,"OBEGN");
-  int OBEGN=CODE(4,as_obegn,as_next,0,0);  
-  HEADER(4,"OCLR");
-  int OCLR=CODE(4,as_oclr,as_next,0,0);  
-  HEADER(5,"ODISP");
-  int ODISP=CODE(4,as_odisp,as_next,0,0);  
-  HEADER(4,"OROT");
-  int OROT=CODE(4,as_orot,as_next,0,0);  
-  HEADER(5,"OTSIZ");
-  int OTSIZ=CODE(4,as_otsiz,as_next,0,0);  
-  HEADER(5,"OTCOL");
-  int OTCOL=CODE(4,as_otcol,as_next,0,0);  
-  HEADER(5,"OCURS");
-  int OCURS=CODE(4,as_ocurs,as_next,0,0);  
-  HEADER(5,"OPRNT");
-  int OPRNT=CODE(4,as_oprnt,as_next,0,0);  
-  HEADER(5,"OCRLF");
-  int OCRLF=CODE(4,as_ocrlf,as_next,0,0);  
-  HEADER(6,"OUTADR");
-  int OUTADR=CODE(4,as_outadr,as_next,0,0);  
-  HEADER(6,"IN1ADR");
-  int IN1ADR=CODE(4,as_in1adr,as_next,0,0);  
-  HEADER(6,"IN2ADR");
-  int IN2ADR=CODE(4,as_in2adr,as_next,0,0);  
 
 
   HEADER(3,"KEY");
@@ -1808,13 +1621,6 @@ void setup()
   int IMMED=COLON(6,DOLIT,0x80,LAST,AT,PSTOR,EXITT);
   int ENDD=IP;
   Serial.println();
-  // lines added to identify string buffers
-  Serial.print("inputString1=");
-  Serial.print(*inputString1);
-  Serial.print(" inputString2=");
-  Serial.print(*inputString2);
-  Serial.print(" outputString=");
-  Serial.print(*outputString);
   Serial.print(" IP=");
   Serial.print(IP);
   Serial.print(" R-stack= ");
@@ -1838,7 +1644,7 @@ void setup()
     P = 0x180;                        // EVAL
     WP = 0x184;
     evaluate();
-    Serial.println(" Done loading."); 
+    Serial.println(" Done latest loading."); 
     file.close();
     SPIFFS.end();
   }

@@ -46,7 +46,7 @@ Complete Forth Written in C
     http://forth.org/OffeteStore/OffeteStore.html
 
 ## Purpose of Code
-    Use this code along with my Forth class to be published at a later date.
+    Use this code along with my website [www.wellys.com](www.wellys.com) for information on using Forth with microcontrollers.
 
 ## Notes on repository
 You may download or clone the entire repository, however, the folder esp32Forth_65 contains the specific code required by the Aruduino IDE and the ESP32 board. 

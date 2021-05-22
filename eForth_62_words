@@ -1,11 +1,3 @@
-OBEGN ( -- ) init display using default addr 0x3C and flag is true [display.begin]
-OCLR ( -- ) clears display [display.Clear]
-ODISP ( -- ) displays the display buffer [display.display]
-OROT ( rot -- ) rotate the display, 1 has c button at bottom [display.Rotation]
-OTSIZ ( size -- ) set text size, 1 is standard [display.setTextSize]
-OCURS ( height width -- ) set cursor location [display.Cursor]
-OPRNT ( strptr --  ) display test string on OLED [display.print]
-OCRLF  ( --  ) display CRLF test string on OLED [display.print]
 BLNK21 (  -- ) blink pin 21 on/off as fast as possible
 BLINK21 (  --  ) blink pin 21 on/off as fast as possible, allow for interruption
 TOG21 ( --  ) toggle pin 21 

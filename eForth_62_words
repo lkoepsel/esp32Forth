@@ -1,7 +1,3 @@
-BLNK21 (  -- ) blink pin 21 on/off as fast as possible
-BLINK21 (  --  ) blink pin 21 on/off as fast as possible, allow for interruption
-TOG21 ( --  ) toggle pin 21 
-INIT21 ( -- , init pin 21 and OUTPUT )
 BLINKM ( micros -- ) blink led on/off for period of microseconds )
 DELAYM ( micros --  ) same as Arduino delay, locks out until delay ends
 ALTERNATE ( period cfa -- ) alternate a word per period

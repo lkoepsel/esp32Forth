@@ -1,17 +1,82 @@
+\ HAL: Adafruit HUZZAH32
+\ from Pins_Arduino_h
 
-DECIMAL
+\ Short side of board JP3
+\ BAT
+\ EN
+\ USB
+Hex
+$2000       constant GPIO13 \ A12 LED Confirmed
+$1000       constant GPIO12 \ A11 Failed HAL, Confirmed Prim 
+$8000000    constant GPIO27 \ A10 Confirmed
+$2          constant GPIO33 \ A9 Failed
+$8000       constant GPIO15 \ A8 Failed HAL, Confirmed Prim
+$1          constant GPIO32 \ A7 Confirmed
+$4000       constant GPIO14 \ A6 Failed HAL, Confirmed Prim
+$400000     constant GPIO22 \ SCL Confirmed
+$800000     constant GPIO23 \ SDA Confirmed
 
-: PWM ( pin dutycycle/8192 chan frequency  --  , Set pin for PWM )
-    over freq swap over duty pin ;
-( EX: 5 4096 0 1000 PWM -- pin 5, 50%, chan 0, 1kHz )
-( EX: 18 2700 2 2000 PWM -- pin 18, 33%, chan 2, 2kHz )
+\ Long side of board JP1
+\ Reset
+\ 3.3V
+\ NC
+\ GND
+$4000000    constant GPIO26  \ A0 DAC2
+$2000000    constant GPIO25  \ A1 DAC1
+$4          constant I34     \ A2 Input only
+$80         constant I39     \ A3 Input only
+$10         constant GPIO36  \ A4
+$10         constant GPIO4   \ A5
+$20         constant GPIO5   \ SCK
+$40000      constant GPIO18  \ MOSI
+$80000      constant GPIO19  \ MISO
+$10000      constant GPIO16  \ RX
+$20000      constant GPIO17  \ TX
+$200000     constant GPIO21  \ pin 21
 
-: TOGLED ( --  , toggle led )
-    p0in $2000 xor p0 ;
+\ Aliases
+GPIO4    constant T0         \ GPIO4;
+$0       constant T1         \ GPIO0;
+$4       constant T2         \ GPIO2;
+GPIO15   constant T3         \ GPIO15;
+GPIO13   constant T4         \ GPIO13;
+GPIO12   constant T5         \ GPIO12;
+GPIO14   constant T6         \ GPIO14;
+GPIO27   constant T7         \ GPIO27;
+GPIO33   constant T8         \ GPIO33;
+GPIO32   constant T9         \ GPIO32;
+
+GPIO25   constant DAC1       \ GPIO25;
+GPIO26   constant DAC2       \ GPIO26;
+
+GPIO13 constant LED
+
+\ Primitives for HUZZAH32
+: bin 2 base ! ; ( -- , set number base to binary )
+
+: HIGH P0S ; ( n -- , set output pin on P0 high )
+: LOW P0C ; ( n -- , set output pin P0 low )
 
 : DELAY ( millis --  , same as Arduino delay, locks out until delay ends)
     gtime + begin dup gtime < until drop ;
 ( EX: 5000 delay -- locks out for 5 seconds )
+
+: PINTST ( dpin -- look for 5Hz freq on DMM or Labrador, decimal pin number)
+    DUP   
+    BEGIN 
+        DUP HIGH 100 DELAY DUP LOW 100 DELAY ?KEYT 
+    UNTIL DROP DROP ;
+
+: PWM ( pin dutycycle/8192 chan frequency  --  , Set pin for PWM )
+    decimal over freq swap over duty pin ;
+( EX: 5 4096 0 1000 PWM -- pin 5, 50%, chan 0, 1kHz )
+( EX: 21 2700 2 2000 PWM -- pin 21, 33%, chan 2, 2kHz )
+
+: TOGLED ( --  , toggle led )
+    p0in LED xor p0 ;
+
+: TOGGLE ( pin --  , toggle pin, P0 only )
+    p0in xor p0 ;
 
 : BLINK ( millis -- , blink led on/off for period of milliseconds )
     begin dup delay togled ?keyt until drop drop ;
@@ -28,20 +93,6 @@ DECIMAL
 : BLINKM ( micros -- , blink led on/off for period of microseconds )
     begin dup delaym togled ?keyt until drop drop ;
 ( EX: 500 blink -- blinks off/on for 500 millisecs )
-
-: INIT21 ( -- , init pin and level )
-     21 opin p0in $200000 xor p0S ;
-
-: TOG21 ( --  , toggle led )
-    p0in $200000 xor p0 ;
-
-: BLINK21 (  -- , blink pin 21 on/off as fast as possible, allow for interruption )
-    init21 begin tog21 ?keyt until drop ;
-( EX: 72 kHz )
-
-: BLNK21 (  -- , blink pin 21 on/off as fast as possible )
-    init21 begin tog21 again ;
-( EX: 94 kHz )
 
 : TESTIF ( f -- , show results for if test )
     if  ." true " else ." false " then ." both " ;

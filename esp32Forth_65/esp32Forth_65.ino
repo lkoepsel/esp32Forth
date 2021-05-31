@@ -3,7 +3,7 @@
 /******************************************************************************/
 /* 05sep20wlk _65                                                             */
 /* Adafruit ESP32 Feather                                                     */
-/* CMDS: GTIMM, LED, >, INPUP, INPDN, GTIME, DREAD, DWRT,  OPIN, IPIN         */
+/* CMDS: GTIMM, >, INPUP, INPDN, GTIME, DREAD, DWRT,  OPIN, IPIN              */
 /* 16jun19cht  _62                                                            */
 /* structures                                                                 */
 /* 14jun19cht  _61                                                            */
@@ -791,12 +791,6 @@ void inpdn(void)
    pinMode(WP,INPUT_PULLDOWN);
 }
 
-// new word for digital write to onboard LED
-void led(void)
-{  WP=top; pop;
-   digitalWrite(LED_PIN,WP);
-}
-
 // new word for getting time from millis
 void gtimm(void)
 { stack[(unsigned char)++S] = top; 
@@ -884,9 +878,8 @@ void (*primitives[95])(void) = {
     /* case 77 */ inpup,
     /* case 78 */ inpdn,
     /* case 79 */ great,
-    /* case 80 */ led,
-    /* case 81 */ gtimm,
-    /* case 82 */ qrxt };
+    /* case 80 */ gtimm,
+    /* case 81 */ qrxt };
 
 int as_nop=0;
 int as_accept=1;
@@ -968,9 +961,8 @@ int as_gtime=76;
 int as_inpup=77;
 int as_inpdn=78;
 int as_great=79;
-int as_led=80;
-int as_gtimm=81;
-int as_qrxt=82;
+int as_gtimm=80;
+int as_qrxt=81;
 
 
 void evaluate()
@@ -993,23 +985,25 @@ void setup()
   delay(100);
   Serial.println("Booting esp32Forth v6.5 ...");
   
+// Removed the code below as its not required for the
+// Feather ESP32 (HUZZAH32)
 // Setup timer and attach timer to a led pin
-  ledcSetup(0, 550, LEDC_TIMER_13_BIT);
-  ledcAttachPin(5, 0);
-  ledcAnalogWrite(0, 250, brightness);
-  // Red LED on Adafruit ESP32 is pin 13, not 2
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+//  ledcSetup(0, 550, LEDC_TIMER_13_BIT);
+//  ledcAttachPin(5, 0);
+//  ledcAnalogWrite(0, 250, brightness);
+//   Red LED on Adafruit ESP32 is pin 13, not 2
+//  pinMode(LED_BUILTIN, OUTPUT);
+//  digitalWrite(LED_BUILTIN, HIGH);
 //pinMode(2,OUTPUT);       // LED for NodeMCU
 //digitalWrite(2, HIGH);   // turn the LED2 on 
-  pinMode(16,OUTPUT);
-  digitalWrite(16, LOW);   // motor1 forward
-  pinMode(17,OUTPUT);
-  digitalWrite(17, LOW);   // motor1 backward 
-  pinMode(18,OUTPUT);
-  digitalWrite(18, LOW);   // motor2 forward 
-  pinMode(19,OUTPUT);
-  digitalWrite(19, LOW);   // motor2 backward
+//  pinMode(16,OUTPUT);
+//  digitalWrite(16, LOW);   // motor1 forward
+//  pinMode(17,OUTPUT);
+//  digitalWrite(17, LOW);   // motor1 backward 
+//  pinMode(18,OUTPUT);
+//  digitalWrite(18, LOW);   // motor2 forward 
+//  pinMode(19,OUTPUT);
+//  digitalWrite(19, LOW);   // motor2 backward
 
   IP=512;
   R=0;
@@ -1214,12 +1208,10 @@ void setup()
   int INPDN=CODE(4,as_inpdn,as_next,0,0);
   HEADER(1,">");
   int GREAT=CODE(4,as_great,as_next,0,0);
-  HEADER(3,"LED");
-  int LED=CODE(4,as_led,as_next,0,0);
   HEADER(5,"GTIMM");
   int GTIMM=CODE(4,as_gtimm,as_next,0,0);
   HEADER(5,"?KEYT");
-
+  int QKEYT=CODE(4,as_qrxt,as_next,0,0); 
 
   HEADER(3,"KEY");
   int KEY=COLON(0);
